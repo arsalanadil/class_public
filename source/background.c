@@ -354,8 +354,8 @@ int background_functions(
     p_tot += pvecback[pba->index_bg_p_scf];
     dp_dloga += 0.0; /** <-- This depends on a_prime_over_a, so we cannot add it now! */
     //divide relativistic & nonrelativistic (not very meaningful for oscillatory models)
-    rho_r += 3.*pvecback[pba->index_bg_p_scf]; //field pressure contributes radiation
-    rho_m += pvecback[pba->index_bg_rho_scf] - 3.* pvecback[pba->index_bg_p_scf]; //the rest contributes matter
+    //rho_r += 3.*pvecback[pba->index_bg_p_scf]; //field pressure contributes radiation ---not sure why this is here-AA
+    //rho_m += pvecback[pba->index_bg_rho_scf] - 3.* pvecback[pba->index_bg_p_scf]; //the rest contributes matter --Same here-AA
     //printf(" a= %e, Omega_scf = %f, \n ",a_rel, pvecback[pba->index_bg_rho_scf]/rho_tot );
   }
 
@@ -2028,11 +2028,11 @@ int background_initial_conditions(
 
   }
 
-  /** - Fix initial value of \f$ \phi, \phi' \f$
+  /** - Fix initial value of \f$ \phi, \phi' \f$  -- AA: What's all this about??
    * set directly in the radiation attractor => fixes the units in terms of rho_ur
    *
    * TODO:
-   * - There seems to be some small oscillation when it starts.
+   * - There seems to be some small oscillation when it starts. AA: That's a good thing!
    * - Check equations and signs. Sign of phi_prime?
    * - is rho_ur all there is early on?
    */
@@ -2057,10 +2057,10 @@ int background_initial_conditions(
       pvecback_integration[pba->index_bi_phi_prime_scf] = pba->phi_prime_ini_scf;
     }
     class_test(!isfinite(pvecback_integration[pba->index_bi_phi_scf]) ||
-               !isfinite(pvecback_integration[pba->index_bi_phi_scf]),
+               !isfinite(pvecback_integration[pba->index_bi_phi_scf]),//AA:why is this condition repeated?? should be phi' maybe? -AA
                pba->error_message,
                "initial phi = %e phi_prime = %e -> check initial conditions",
-               pvecback_integration[pba->index_bi_phi_scf],
+               pvecback_integration[pba->index_bi_phi_scf],//AA: same as above here
                pvecback_integration[pba->index_bi_phi_scf]);
   }
 
@@ -2447,7 +2447,8 @@ double dV_e_scf(struct background *pba,
   //  double scf_A      = pba->scf_parameters[2];
   //  double scf_B      = pba->scf_parameters[3];
 
-  return -scf_lambda*V_scf(pba,phi);
+  //AA changed following line: was V_scf instead of V_e_scf
+  return -scf_lambda*V_e_scf(pba,phi);
 }
 
 double ddV_e_scf(struct background *pba,
@@ -2457,8 +2458,9 @@ double ddV_e_scf(struct background *pba,
   //  double scf_alpha  = pba->scf_parameters[1];
   //  double scf_A      = pba->scf_parameters[2];
   //  double scf_B      = pba->scf_parameters[3];
-
-  return pow(-scf_lambda,2)*V_scf(pba,phi);
+  
+  //AA changed following line: was V_scf instead of V_e_scf
+  return pow(-scf_lambda,2)*V_e_scf(pba,phi);
 }
 
 
@@ -2467,6 +2469,9 @@ double ddV_e_scf(struct background *pba,
  *
  * double scf_alpha = 2;
  *
+
+
+
  * double scf_B = 34.8;
  *
  * double scf_A = 0.01; (values for their Figure 2)
@@ -2513,6 +2518,7 @@ double V_scf(
              struct background *pba,
              double phi) {
   return  V_e_scf(pba,phi)*V_p_scf(pba,phi);
+
 }
 
 double dV_scf(
