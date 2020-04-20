@@ -345,18 +345,19 @@ int background_functions(
     phi_prime = pvecback_B[pba->index_bi_phi_prime_scf];
     pvecback[pba->index_bg_phi_scf] = phi; // value of the scalar field phi
     pvecback[pba->index_bg_phi_prime_scf] = phi_prime; // value of the scalar field phi derivative wrt conformal time
-    pvecback[pba->index_bg_V_scf] = V_scf(pba,phi); //V_scf(pba,phi); //write here potential as function of phi
+    pvecback[pba->index_bg_V_scf] =  V_scf(pba,phi); //V_scf(pba,phi); //write here potential as function of phi
     pvecback[pba->index_bg_dV_scf] = dV_scf(pba,phi); // dV_scf(pba,phi); //potential' as function of phi
     pvecback[pba->index_bg_ddV_scf] = ddV_scf(pba,phi); // ddV_scf(pba,phi); //potential'' as function of phi
-    pvecback[pba->index_bg_rho_scf] = (phi_prime*phi_prime/(2*a*a) + V_scf(pba,phi))/3.; // energy of the scalar field. The field units are set automatically by setting the initial conditions
-    pvecback[pba->index_bg_p_scf] =(phi_prime*phi_prime/(2*a*a) - V_scf(pba,phi))/3.; // pressure of the scalar field
+    pvecback[pba->index_bg_rho_scf] = (phi_prime*phi_prime/(2*a*a) +V_scf(pba,phi))/3.; // energy of the scalar field. The field units are set automatically by setting the initial conditions
+    pvecback[pba->index_bg_p_scf] = (phi_prime*phi_prime/(2*a*a) - V_scf(pba,phi))/3.; // pressure of the scalar field 
     rho_tot += pvecback[pba->index_bg_rho_scf];
     p_tot += pvecback[pba->index_bg_p_scf];
     dp_dloga += 0.0; /** <-- This depends on a_prime_over_a, so we cannot add it now! */
-    //divide relativistic & nonrelativistic (not very meaningful for oscillatory models)
-    //rho_r += 3.*pvecback[pba->index_bg_p_scf]; //field pressure contributes radiation ---not sure why this is here-AA
-    //rho_m += pvecback[pba->index_bg_rho_scf] - 3.* pvecback[pba->index_bg_p_scf]; //the rest contributes matter --Same here-AA
+    //divide relativistic & nonrelativistic (not very meaningful for oscillatory models)-AA:I commented out following lines -- doesn't seem to change anything though 
+    rho_r += 3.*pvecback[pba->index_bg_p_scf]; //field pressure contributes radiation ---not sure why this is here-AA
+    rho_m += pvecback[pba->index_bg_rho_scf] - 3.* pvecback[pba->index_bg_p_scf]; //the rest contributes matter --Same here-AA
     //printf(" a= %e, Omega_scf = %f, \n ",a_rel, pvecback[pba->index_bg_rho_scf]/rho_tot );
+    //printf("BHINDI a= %e, Omega_scf=%f, phi = %e, Vscf = %e, \n ",a_rel,pvecback[pba->index_bg_rho_scf]/rho_tot ,phi, pvecback[pba->index_bg_V_scf] );
   }
 
   /* ncdm */
@@ -1878,7 +1879,7 @@ int background_solve(
       printf("     -> parameters: [lambda, alpha, A, B] = \n");
       printf("                    [");
       for (i=0; i<pba->scf_parameters_size-1; i++){
-        printf("%.3f, ",pba->scf_parameters[i]);
+        printf("%f, ",pba->scf_parameters[i]);
       }
       printf("%.3f]\n",pba->scf_parameters[pba->scf_parameters_size-1]);
     }
@@ -1929,7 +1930,6 @@ int background_initial_conditions(
 
   /** - fix initial value of \f$ a \f$ */
   a = ppr->a_ini_over_a_today_default * pba->a_today;
-
   /**  If we have ncdm species, perhaps we need to start earlier
       than the standard value for the species to be relativistic.
       This could happen for some WDM models.
@@ -2038,12 +2038,16 @@ int background_initial_conditions(
    */
   if(pba->has_scf == _TRUE_){
     scf_lambda = pba->scf_parameters[0];
+    //scf_lambda = 8.0;
+    //printf("scfLambda is %lf \n",scf_lambda );
+
     if(pba->attractor_ic_scf == _TRUE_){
       pvecback_integration[pba->index_bi_phi_scf] = -1/scf_lambda*
         log(rho_rad*4./(3*pow(scf_lambda,2)-12))*pba->phi_ini_scf;
       if (3.*pow(scf_lambda,2)-12. < 0){
         /** - --> If there is no attractor solution for scf_lambda, assign some value. Otherwise would give a nan.*/
     	pvecback_integration[pba->index_bi_phi_scf] = 1./scf_lambda;//seems to the work
+      printf("going into attractor peice of code....");
 	if (pba->background_verbose > 0)
 	  printf(" No attractor IC for lambda = %.3e ! \n ",scf_lambda);
       }
@@ -2071,10 +2075,10 @@ int background_initial_conditions(
 
   /* Just checking that our initial time indeed is deep enough in the radiation
      dominated regime */
-  class_test(fabs(pvecback[pba->index_bg_Omega_r]-1.) > ppr->tol_initial_Omega_r,
-	     pba->error_message,
-	     "Omega_r = %e, not close enough to 1. Decrease a_ini_over_a_today_default in order to start from radiation domination.",
-	     pvecback[pba->index_bg_Omega_r]);
+  //class_test(fabs(pvecback[pba->index_bg_Omega_r]-1.) > ppr->tol_initial_Omega_r,
+	//     pba->error_message,
+	//     "Omega_r = %e, not close enough to 1. Decrease a_ini_over_a_today_default in order to start from radiation domination.",
+	//     pvecback[pba->index_bg_Omega_r]);
 
   /** - compute initial proper time, assuming radiation-dominated
       universe since Big Bang and therefore \f$ t=1/(2H) \f$ (good
@@ -2432,17 +2436,20 @@ double V_e_scf(struct background *pba,
                double phi
                ) {
   double scf_lambda = pba->scf_parameters[0];
+  double vz = pba->scf_parameters[4];
+  //double scf_lambda = 8.0;
   //  double scf_alpha  = pba->scf_parameters[1];
   //  double scf_A      = pba->scf_parameters[2];
   //  double scf_B      = pba->scf_parameters[3];
-
-  return  exp(-scf_lambda*phi);
+  //printf("scfLambda is %lf \n",scf_lambda );
+  return  vz*(1.45161*1.e113)*exp(-scf_lambda*phi);//AA: Need to convert to mp^2/Mpc^2
 }
 
 double dV_e_scf(struct background *pba,
                 double phi
                 ) {
   double scf_lambda = pba->scf_parameters[0];
+  //double scf_lambda = 8.0;
   //  double scf_alpha  = pba->scf_parameters[1];
   //  double scf_A      = pba->scf_parameters[2];
   //  double scf_B      = pba->scf_parameters[3];
@@ -2455,12 +2462,13 @@ double ddV_e_scf(struct background *pba,
                  double phi
                  ) {
   double scf_lambda = pba->scf_parameters[0];
+  //double scf_lambda = 8.0;
   //  double scf_alpha  = pba->scf_parameters[1];
   //  double scf_A      = pba->scf_parameters[2];
   //  double scf_B      = pba->scf_parameters[3];
   
   //AA changed following line: was V_scf instead of V_e_scf
-  return pow(-scf_lambda,2)*V_e_scf(pba,phi);
+  return pow(scf_lambda,2)*V_e_scf(pba,phi);
 }
 
 
@@ -2524,6 +2532,18 @@ double V_scf(
 double dV_scf(
               struct background *pba,
 	      double phi) {
+  double scf_lambda = pba->scf_parameters[0];
+  //double scf_lambda = 8.0;
+  double scf_alpha  = pba->scf_parameters[1];
+  double scf_A      = pba->scf_parameters[2];
+  double scf_B      = pba->scf_parameters[3];
+
+  //printf("scfLambda is %lf \n",scf_lambda );
+  //int i;
+  //for (i=0; i<pba->scf_parameters_size-1; i++){
+  //    printf("%.3f, ",pba->scf_parameters[i]);
+  //}
+  //printf("Vscf is %lf \n",V_scf(pba,phi) );
   return dV_e_scf(pba,phi)*V_p_scf(pba,phi) + V_e_scf(pba,phi)*dV_p_scf(pba,phi);
 }
 

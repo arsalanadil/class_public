@@ -1183,6 +1183,8 @@ int input_read_parameters(
     class_read_double("scf_shooting_parameter",pba->scf_parameters[pba->scf_tuning_index]);
 
     scf_lambda = pba->scf_parameters[0];
+    //printf("scfLambda is %lf \n",scf_lambda );
+    printf("shooting parameter is %lf \n", pba->scf_parameters[pba->scf_tuning_index]);
     if ((fabs(scf_lambda) <3.)&&(pba->background_verbose>1))
       printf("lambda = %e <3 won't be tracking (for exp quint) unless overwritten by tuning function\n",scf_lambda);
 
@@ -2962,7 +2964,7 @@ int input_default_params(
   pba->ncdm_psd_files = NULL;
 
   pba->Omega0_scf = 0.; /* Scalar field defaults */
-  pba->attractor_ic_scf = _TRUE_;
+  pba->attractor_ic_scf = _FALSE_;
   pba->scf_parameters = NULL;
   pba->scf_parameters_size = 0;
   pba->scf_tuning_index = 0;
