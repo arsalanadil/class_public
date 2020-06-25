@@ -13,3 +13,5 @@ RealSpaceInterface/cache/
 .DS_Store
 doc/manual/html
 doc/manual/latex
+notebooks/.ipynb_checkpoints/
+notebooks/Adil_Notebooks/.ipynb_checkpoints/
