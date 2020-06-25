@@ -353,7 +353,8 @@ int background_functions(
     rho_tot += pvecback[pba->index_bg_rho_scf];
     p_tot += pvecback[pba->index_bg_p_scf];
     dp_dloga += 0.0; /** <-- This depends on a_prime_over_a, so we cannot add it now! */
-    //divide relativistic & nonrelativistic (not very meaningful for oscillatory models)-AA:I commented out following lines -- doesn't seem to change anything though 
+    //divide relativistic & nonrelativistic (not very meaningful for oscillatory models)
+    //-AA:The following lines purportedly are there to add this contribution to N_eff which is relevant for BBN in thermondynamics.c (see notes) 
     rho_r += 3.*pvecback[pba->index_bg_p_scf]; //field pressure contributes radiation ---not sure why this is here-AA
     rho_m += pvecback[pba->index_bg_rho_scf] - 3.* pvecback[pba->index_bg_p_scf]; //the rest contributes matter --Same here-AA
     //printf(" a= %e, Omega_scf = %f, \n ",a_rel, pvecback[pba->index_bg_rho_scf]/rho_tot );
@@ -2073,12 +2074,12 @@ int background_initial_conditions(
 	     pba->error_message,
 	     pba->error_message);
 
-  /* Just checking that our initial time indeed is deep enough in the radiation
+  /* Just checking that our initial time indeed is deep enough in the radiation//Blanked out by AA
      dominated regime */
-  //class_test(fabs(pvecback[pba->index_bg_Omega_r]-1.) > ppr->tol_initial_Omega_r,
-	//     pba->error_message,
-	//     "Omega_r = %e, not close enough to 1. Decrease a_ini_over_a_today_default in order to start from radiation domination.",
-	//     pvecback[pba->index_bg_Omega_r]);
+  class_test(fabs(pvecback[pba->index_bg_Omega_r]-1.) > ppr->tol_initial_Omega_r,
+	     pba->error_message,
+	     "Omega_r = %e, not close enough to 1. Decrease a_ini_over_a_today_default in order to start from radiation domination.",
+	     pvecback[pba->index_bg_Omega_r]);
 
   /** - compute initial proper time, assuming radiation-dominated
       universe since Big Bang and therefore \f$ t=1/(2H) \f$ (good
@@ -2442,7 +2443,7 @@ double V_e_scf(struct background *pba,
   //  double scf_A      = pba->scf_parameters[2];
   //  double scf_B      = pba->scf_parameters[3];
   //printf("scfLambda is %lf \n",scf_lambda );
-  return  vz*(1.45161*1.e113)*exp(-scf_lambda*phi);//AA: Need to convert to mp^2/Mpc^2
+  return  vz*(1.45161*1.e113)*exp(-scf_lambda*phi);//AA: prefactor to convert to mp^2/Mpc^2
 }
 
 double dV_e_scf(struct background *pba,
