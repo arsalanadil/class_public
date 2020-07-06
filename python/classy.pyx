@@ -25,6 +25,7 @@ import sys
 def viewdictitems(d):
     if sys.version_info >= (3,0):
         return d.items()
+        print("d.items printed from classy.pyx", d.items())#AA
     else:
         return d.viewitems()
 
@@ -159,6 +160,7 @@ cdef class Class:
         if viewdictitems(self._pars) <= viewdictitems(oldpars):
           return # Don't change the computed states, if the new dict was already contained in the previous dict
         self.computed=False
+        print("Parameter dictionary L163 in classy.pyx:", pars)#AA
         return True
 
     def empty(self):
@@ -349,6 +351,17 @@ cdef class Class:
         # The input module should raise a CosmoSevereError, because
         # non-understood parameters asked to the wrapper is a problematic
         # situation.
+        """
+        AA putting a manual "dirty fix" due to error coming from shooting. The problem is that if MontePython takes you into a very bad part of
+        parameter space then the shooting algorithm in input.c, before returning "shooting failed", return Omega_scf = nan and 
+        shooting_parameter = infty. This is a problem because then MontePython thinks that Omega_scf!=-1 (which is the flag to tell CLASS to use
+        scalar field) and so CLASS returns an error saying that it did not read scf_parameters, scf_tuning_index etc. 
+
+        The dirty fix I have is to catch this situation in Classy so that the following piece returns a CosmoComputationError (that treats the 
+        output as a valid point but with zero likelihood) as opposed to a CosmoSevereError (which erroneously aborts the MP run!). 
+        ToDo: this error should really be caught in the CLASS module input.c and not here. Probably by implementing a "smarter" shoting algorithm
+        or prohibiting crazy values of the shooting parameter.
+        """
         if "input" in level:
             if input_init(&self.fc, &self.pr, &self.ba, &self.th,
                           &self.pt, &self.tr, &self.pm, &self.sp,
@@ -358,9 +371,22 @@ cdef class Class:
             # This part is done to list all the unread parameters, for debugging
             problem_flag = False
             problematic_parameters = []
+            scf_there = False#AA
             for i in range(self.fc.size):
+                if(self.fc.name[i].decode() == "Omega_scf" and self.fc.read[i] == _TRUE_):#AA this if statement
+                    print("Indeed Omega_scf was passed with", self.fc.name[i], self.fc.read[i], self.fc.value[i])
+                    scf_there = True
+
                 if self.fc.read[i] == _FALSE_:
                     problem_flag = True
+                    print("PARAMETERS CAUSING ISSUES?", self.fc.name[i].decode())
+                    if(scf_there):
+                        if(self.fc.name[i].decode() == 'attractor_ic_scf' or self.fc.name[i].decode() == 'scf_tuning_index' or self.fc.name[i].decode()== 'scf_parameters'):
+                            print("You are inside your if statement, tyring to fix this by setting problem_flag=false")#AA
+                            problem_flag = False
+                            self.struct_cleanup()
+                            raise CosmoComputationError("COSMO ERROR DUE TO ARSI. No need to worry, this is just a shooting error")
+
                     problematic_parameters.append(self.fc.name[i].decode())
             if problem_flag:
                 raise CosmoSevereError(
@@ -1627,6 +1653,7 @@ cdef class Class:
             raise TypeError("Deprecated")
 
         derived = {}
+        #AA: will probably need to add Omega_scf here
         for name in names:
             if name == 'h':
                 value = self.ba.h
