@@ -45,7 +45,7 @@ cdef extern from "class.h":
 
     cdef struct precision:
         ErrorMsg error_message
-
+#AA: Add scf_params here. 
     cdef struct background:
         ErrorMsg error_message
         int bg_size
@@ -90,6 +90,7 @@ cdef extern from "class.h":
         double H_eq
         double z_eq
         double tau_eq
+        double scf_parameters[6] #somehow doing this prints the "first 6 parameters" AA
 
     cdef struct thermo:
         ErrorMsg error_message

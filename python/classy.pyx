@@ -382,7 +382,7 @@ cdef class Class:
                     print("PARAMETERS CAUSING ISSUES?", self.fc.name[i].decode())
                     if(scf_there):
                         if(self.fc.name[i].decode() == 'attractor_ic_scf' or self.fc.name[i].decode() == 'scf_tuning_index' or self.fc.name[i].decode()== 'scf_parameters'):
-                            print("You are inside your if statement, tyring to fix this by setting problem_flag=false")#AA
+                            #print("You are inside your if statement, tyring to fix this by setting problem_flag=false")#AA
                             problem_flag = False
                             self.struct_cleanup()
                             raise CosmoComputationError("COSMO ERROR DUE TO ARSI. No need to worry, this is just a shooting error")
@@ -1653,9 +1653,24 @@ cdef class Class:
             raise TypeError("Deprecated")
 
         derived = {}
-        #AA: will probably need to add Omega_scf here
+        #AA: adding stuff for scf. Have to add corresponding quantities in cclassy.pyxd
         for name in names:
-            if name == 'h':
+            if name == 'Omega0_scf' or name == 'Omega_scf':
+                value = self.ba.Omega0_scf
+            elif name == 'scf_params__1':
+                value = self.ba.scf_parameters[0]
+            elif name == 'scf_params__2':
+                value = self.ba.scf_parameters[1]
+            elif name == 'scf_params__3':
+                value = self.ba.scf_parameters[2]
+            elif name == 'scf_params__4':
+                value = self.ba.scf_parameters[3]
+            elif name == 'scf_params__5':
+                value = self.ba.scf_parameters[4]
+            elif name == 'scf_params__6':
+                value = self.ba.scf_parameters[5]
+
+            elif name == 'h':
                 value = self.ba.h
             elif name == 'H0':
                 value = self.ba.h*100
