@@ -350,12 +350,13 @@ int background_functions(
     pvecback[pba->index_bg_ddV_scf] = ddV_scf(pba,phi); // ddV_scf(pba,phi); //potential'' as function of phi
     pvecback[pba->index_bg_rho_scf] = (phi_prime*phi_prime/(2*a*a) +V_scf(pba,phi))/3.; // energy of the scalar field. The field units are set automatically by setting the initial conditions
     pvecback[pba->index_bg_p_scf] = (phi_prime*phi_prime/(2*a*a) - V_scf(pba,phi))/3.; // pressure of the scalar field 
+    //this division by 3 is a little funky. I think it comes from normalizing (8 Pi G)/3 = 1 instead of (8 Pi G) =1.... need to verify
     rho_tot += pvecback[pba->index_bg_rho_scf];
     p_tot += pvecback[pba->index_bg_p_scf];
     dp_dloga += 0.0; /** <-- This depends on a_prime_over_a, so we cannot add it now! */
     //divide relativistic & nonrelativistic (not very meaningful for oscillatory models)
     //-AA:The following lines purportedly are there to add this contribution to N_eff which is relevant for BBN in thermondynamics.c (see notes) 
-    rho_r += 3.*pvecback[pba->index_bg_p_scf]; //field pressure contributes radiation ---not sure why this is here-AA
+    rho_r += 3.*pvecback[pba->index_bg_p_scf]; //field pressure contributes radiation ---not sure why this is this way-AA
     rho_m += pvecback[pba->index_bg_rho_scf] - 3.* pvecback[pba->index_bg_p_scf]; //the rest contributes matter --Same here-AA
     //printf(" a= %e, Omega_scf = %f, \n ",a_rel, pvecback[pba->index_bg_rho_scf]/rho_tot );
     //printf("BHINDI a= %e, Omega_scf=%f, phi = %e, Vscf = %e, \n ",a_rel,pvecback[pba->index_bg_rho_scf]/rho_tot ,phi, pvecback[pba->index_bg_V_scf] );
@@ -2486,6 +2487,8 @@ double ddV_e_scf(struct background *pba,
  * double scf_A = 0.01; (values for their Figure 2)
  */
 
+//AS V_p below! Blank out for Brane model (which is below)
+/*
 double V_p_scf(
                struct background *pba,
                double phi) {
@@ -2520,8 +2523,42 @@ double ddV_p_scf(
   return  scf_alpha*(scf_alpha - 1.)*pow(phi -  scf_B,  scf_alpha - 2);
 }
 
-/** Fianlly we can obtain the overall potential \f$ V = V_p*V_e \f$
- */
+// Fianlly we can obtain the overall potential \f$ V = V_p*V_e \f$ 
+*/
+
+double V_p_scf(
+               struct background *pba,
+               double phi) {
+  //  double scf_lambda = pba->scf_parameters[0];
+  double scf_alpha  = pba->scf_parameters[1];
+  double scf_A      = pba->scf_parameters[2];
+  double scf_B      = pba->scf_parameters[3];
+
+  return  (0.01/(pow(phi - scf_B,  2) +  scf_A) + 0.01);
+}
+
+double dV_p_scf(
+                struct background *pba,
+                double phi) {
+  
+  //  double scf_lambda = pba->scf_parameters[0];
+  double scf_alpha  = pba->scf_parameters[1];
+  double scf_A      = pba->scf_parameters[2];
+  double scf_B      = pba->scf_parameters[3];
+  
+  return   -0.02*(phi - scf_B)/(  pow( scf_A + pow(phi-scf_B, 2) , 2)   );
+}
+
+double ddV_p_scf(
+                 struct background *pba,
+                 double phi) {
+  //  double scf_lambda = pba->scf_parameters[0];
+  double scf_alpha  = pba->scf_parameters[1];
+  double scf_A      = pba->scf_parameters[2];
+  double scf_B      = pba->scf_parameters[3];
+
+  return 0.01*( (8.* pow((phi -scf_B),2)/pow( (scf_A + pow(phi-scf_B,2)),3)) - (2./pow( (scf_A + pow(phi-scf_B,2)),2)) ) ;
+}
 
 double V_scf(
              struct background *pba,
