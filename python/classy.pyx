@@ -1667,7 +1667,11 @@ cdef class Class:
                 value = self.ba.scf_parameters[3]
             elif name == 'scf_params__5':
                 value = self.ba.scf_parameters[4]
-            elif name == 'scf_params__6':
+            elif name == 'scf_params__6'
+                value = self.ba.scf_parameters[3]
+            elif name == 'scf_params_der_5':
+                value = self.ba.scf_parameters[4]
+            elif name == 'scf_params_der_6':
                 value = self.ba.scf_parameters[5]
 
             elif name == 'h':
@@ -1804,6 +1808,8 @@ cdef class Class:
                 value = self.pm.phi_max
             elif name == 'sigma8':
                 value = self.nl.sigma8[self.nl.index_pk_m]
+            elif name == 'S8':#AA adding S8
+                value = self.nl.sigma8[self.nl.index_pk_m] * ( (self.ba.Omega0_cdm+self.ba.Omega0_b) /0.3)**0.5
             elif name == 'sigma8_cb':
                 value = self.nl.sigma8[self.nl.index_pk_cb]
             else:
