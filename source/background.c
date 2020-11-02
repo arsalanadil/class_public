@@ -357,7 +357,7 @@ int background_functions(
     //divide relativistic & nonrelativistic (not very meaningful for oscillatory models)
     //-AA:The following lines purportedly are there to add this contribution to N_eff which is relevant for BBN in thermondynamics.c (see notes) 
     rho_r += 3.*pvecback[pba->index_bg_p_scf]; //field pressure contributes radiation ---not sure why this is this way-AA
-    rho_m += pvecback[pba->index_bg_rho_scf] - 3.* pvecback[pba->index_bg_p_scf]; //the rest contributes matter --Same here-AA
+    //rho_m += pvecback[pba->index_bg_rho_scf] - 3.* pvecback[pba->index_bg_p_scf]; //the rest contributes matter --Same here-AA
     //printf(" a= %e, Omega_scf = %f, \n ",a_rel, pvecback[pba->index_bg_rho_scf]/rho_tot );
     //printf("BHINDI a= %e, Omega_scf=%f, phi = %e, Vscf = %e, \n ",a_rel,pvecback[pba->index_bg_rho_scf]/rho_tot ,phi, pvecback[pba->index_bg_V_scf] );
   }
@@ -2488,7 +2488,7 @@ double ddV_e_scf(struct background *pba,
  */
 
 //AS V_p below! Blank out for Brane model (which is below)
-/*
+
 double V_p_scf(
                struct background *pba,
                double phi) {
@@ -2524,8 +2524,8 @@ double ddV_p_scf(
 }
 
 // Fianlly we can obtain the overall potential \f$ V = V_p*V_e \f$ 
-*/
 
+/**
 double V_p_scf(
                struct background *pba,
                double phi) {
@@ -2559,7 +2559,7 @@ double ddV_p_scf(
 
   return 0.01*( (8.* pow((phi -scf_B),2)/pow( (scf_A + pow(phi-scf_B,2)),3)) - (2./pow( (scf_A + pow(phi-scf_B,2)),2)) ) ;
 }
-
+*/
 double V_scf(
              struct background *pba,
              double phi) {
