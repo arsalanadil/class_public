@@ -1657,23 +1657,18 @@ cdef class Class:
         for name in names:
             if name == 'Omega0_scf' or name == 'Omega_scf':
                 value = self.ba.Omega0_scf
-            elif name == 'scf_params__1':
+            elif name == 'scf_params_der_1':
                 value = self.ba.scf_parameters[0]
-            elif name == 'scf_params__2':
+            elif name == 'scf_params_der_2':
                 value = self.ba.scf_parameters[1]
-            elif name == 'scf_params__3':
+            elif name == 'scf_params_der_3':
                 value = self.ba.scf_parameters[2]
-            elif name == 'scf_params__4':
-                value = self.ba.scf_parameters[3]
-            elif name == 'scf_params__5':
-                value = self.ba.scf_parameters[4]
-            elif name == 'scf_params__6'
+            elif name == 'scf_params_der_4':
                 value = self.ba.scf_parameters[3]
             elif name == 'scf_params_der_5':
                 value = self.ba.scf_parameters[4]
             elif name == 'scf_params_der_6':
                 value = self.ba.scf_parameters[5]
-
             elif name == 'h':
                 value = self.ba.h
             elif name == 'H0':
